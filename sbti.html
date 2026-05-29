@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBTI 沙雕人格测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: #f9f3e6;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            color: #ff6b00;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .question {
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .q-text {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .option {
+            display: block;
+            padding: 10px 14px;
+            background: #f7f7f7;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option:hover {
+            background: #fff0e0;
+        }
+
+        .option input {
+            margin-right: 8px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #ff6b00;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .btn:active {
+            background: #e05a00;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 22px;
+            background: #fff8f0;
+            border-radius: 16px;
+            display: none;
+        }
+
+        .result-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff5500;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .result-desc {
+            font-size: 15px;
+            color: #444;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="title">SBTI 沙雕人格测试</div>
+        <div class="subtitle">纯娱乐 · 打工人专属 · 无心理依据</div>
+
+        <div id="questions"></div>
+        <button class="btn" onclick="getResult()">生成我的人格 🧨</button>
+
+        <div class="result" id="resultBox">
+            <div class="result-title" id="type"></div>
+            <div class="result-desc" id="desc"></div>
+        </div>
+    </div>
+
+    <script>
+        // 计分
+        let score = { S:0, B:0, T:0, I:0, A:0, D:0, L:0, O:0 };
+
+        // 15题 · 4大维度
+        const questions = [
+            { q:"1. 早上闹钟响了？", a:"痛苦到想去世(S)", b:"无所谓直接起(B)" },
+            { q:"2. 看到老板消息？", a:"瞬间紧张(T)", b:"假装没看见(I)" },
+            { q:"3. 聚会陌生人多？", a:"尴尬自闭(A)", b:"疯狂整活(D)" },
+            { q:"4. 人生态度是？", a:"能躺就躺(L)", b:"努力搞钱(O)" },
+            { q:"5. 熬夜后第二天？", a:"生不如死(S)", b:"依旧生龙活虎(B)" },
+            { q:"6. 突然被点名发言？", a:"大脑空白(T)", b:"淡定胡说(I)" },
+            { q:"7. 别人找你帮忙？", a:"不好意思拒绝(A)", b:"直接拒绝(D)" },
+            { q:"8. 制定的计划？", a:"永远完不成(L)", b:"严格执行(O)" },
+            { q:"9. 没钱了怎么办？", a:"焦虑到失眠(S)", b:"摆烂无所谓(B)" },
+            { q:"10. 线上vs线下？", a:"线上疯癫(T)", b:"线下也开朗(I)" },
+            { q:"11. 不开心会？", a:"自己内耗(A)", b:"疯狂吐槽(D)" },
+            { q:"12. 看到别人内卷？", a:"我直接躺平(L)", b:"我也卷(O)" },
+            { q:"13. 被人开玩笑？", a:"尴尬抠脚(S)", b:"反手玩梗(B)" },
+            { q:"14. 临时通知加班？", a:"心态爆炸(T)", b:"默默接受(I)" },
+            { q:"15. 情绪表达方式？", a:"藏在心里(A)", b:"直接写脸上(D)" }
+        ];
+
+        // 16种结果
+        const resultData = {
+            STAL:"【吗喽本喽】痛苦起床、害怕老板、社恐内耗、终极摆烂，主打一个活着就行。",
+            STAO:"【苦命打工人】胆小易紧张、内心敏感，却还在拼命努力，累但不放弃。",
+            STDL:"【摆烂社牛】表面紧张，实则爱吐槽，看透一切，怎么舒服怎么来。",
+            STDO:"【紧绷实干家】容易焦虑，但外向敢说，还特别努力，典型累并快乐着。",
+            SIAL:"【佛系自闭人】情绪稳定、不爱社交、喜欢独处，万事随缘，躺平也安静。",
+            SIAO:"【安静努力派】淡定不焦虑，不爱热闹，默默变强，低调又靠谱。",
+            SIDL:"【快乐宅家怪】心态超好，不爱社交，自己玩也超开心，躺平界天花板。",
+            SIDO:"【沉稳行动派】情绪稳定、能静能动，做事踏实，靠谱又温柔。",
+            BTAL:"【悲观躺平党】起床无感、遇事胆怯、习惯内耗，彻底放弃挣扎。",
+            BTAO:"【乐观老实人】心态强大，虽然社恐，但依旧努力生活，超坚韧。",
+            BTDL:"【快乐摆烂王】天不怕地不怕，爱开玩笑爱整活，人生就是要开心。",
+            BTDO:"【乐天奋斗批】心态满分、外向开朗、努力搞钱，快乐又上进。",
+            BIAL:"【终极佛系怪】毫无情绪波动，不爱社交，无欲无求，与世无争。",
+            BIAO:"【温和实力派】从容淡定、性格温柔，默默努力，不声不响变优秀。",
+            BIDL:"【欢乐自由人】心态超好、随性洒脱、爱热闹，不被生活PUA。",
+            BIDO:"【全能快乐人】情绪稳定、外向敢说、努力上进、快乐拉满，人生赢家。"
+        };
+
+        // 渲染题目
+        function render() {
+            let html = '';
+            questions.forEach((item, i) => {
+                html += `
+                <div class="question">
+                    <div class="q-text">${item.q}</div>
+                    <label class="option"><input type="radio" name="q${i}" value="${item.a.slice(-1)}" required> ${item.a}</label>
+                    <label class="option"><input type="radio" name="q${i}" value="${item.b.slice(-1)}"> ${item.b}</label>
+                </div>`;
+            });
+            document.getElementById("questions").innerHTML = html;
+        }
+
+        // 计算结果
+        function getResult() {
+            score = { S:0,B:0,T:0,I:0,A:0,D:0,L:0,O:0 };
+            questions.forEach((_, i) => {
+                const v = document.querySelector(`input[name="q${i}"]:checked`).value;
+                score[v]++;
+            });
+
+            const type =
+                (score.S>score.B?"S":"B") +
+                (score.T>score.I?"T":"I") +
+                (score.A>score.D?"A":"D") +
+                (score.L>score.O?"L":"O");
+
+            document.getElementById("type").innerText = "你的人格：" + type;
+            document.getElementById("desc").innerText = resultData[type];
+            document.getElementById("resultBox").style.display = "block";
+            document.getElementById("resultBox").scrollIntoView({ behavior:"smooth" });
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
